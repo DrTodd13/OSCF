@@ -8,6 +8,7 @@
 #include <map>
 #include <iomanip>
 #include <sstream>
+#include <set>
 
 int daysdiff(const std::string &in, const std::chrono::system_clock::time_point &now) {
     std::tm tm = {0,0,0,0,0,0,0,0,0,0,0};
@@ -64,7 +65,7 @@ void process_tourney_results(const std::string &file, std::vector<Player> &or_pl
     }
 }
 
-void process_uscf_supp(const std::string &file, std::vector<Player> &or_players, std::map<std::string, unsigned> &uscf_map) {
+void process_uscf_supp(const std::string &file, std::vector<Player> &or_players, std::map<std::string, unsigned> &uscf_map, std::set<std::string> &uscf_but_not_nwsrs) {
     std::ifstream tfile(file);
     while(!tfile.eof()) {
         std::string id;
@@ -80,7 +81,13 @@ void process_uscf_supp(const std::string &file, std::vector<Player> &or_players,
         
         Player &this_player = or_players[player_index->second];
 
+        if (this_player.isAdult()) continue;
+
         if (start_rating > this_player.calc_highest_rating) {
+            // For now just remember if a player has USCF but no NWSRS games.
+            if (this_player.calc_highest_rating == 0) {
+                uscf_but_not_nwsrs.insert(this_player.getFullId());                
+            }
             this_player.calc_highest_rating = start_rating;
         } 
     }
@@ -94,7 +101,6 @@ std::vector<std::string> &split(const std::string &s, char delim, std::vector<st
     }
     return elems;
 }
-
 
 std::vector<std::string> split(const std::string &s, char delim) {
     std::vector<std::string> elems;
@@ -125,6 +131,7 @@ std::map<std::string, std::string> load_schoolcodes(void) {
 int main(int argc, char *argv[]) {
     if (argc != 4) {
         std::cerr << "Wrong number of command line arguments." << std::endl;
+        std::cerr << "Correct is: " << argv[0] << " <rateXX-XXX.dat> <cumulative_tourney_results_file> <uscf_supplement>" << std::endl;
         exit(-1);
     }
 
@@ -155,7 +162,8 @@ int main(int argc, char *argv[]) {
     }
 
     process_tourney_results(argv[2], or_players, nwsrs_map);
-    process_uscf_supp(argv[3], or_players, uscf_map);
+    std::set<std::string> uscf_but_no_nwsrs;
+    process_uscf_supp(argv[3], or_players, uscf_map, uscf_but_no_nwsrs);
 
     for (i = 0; i < or_players.size(); ++i) {
         int grade_index = or_players[i].grade - 'A';
@@ -202,7 +210,12 @@ int main(int argc, char *argv[]) {
                exit(-1);
             }
             std::string city = citer->second;
-            std::cout << std::setw(2) << j+1 << " " << std::left << std::setw(30) << full_name << " " << std::setw(20) << city << std::right << std::setw(4) << star.calc_highest_rating << std::endl;
+ 
+            std::cout << std::setw(2) << j+1 << " " << std::left << std::setw(30) << full_name << " " << std::setw(20) << city << std::right << std::setw(4) << star.calc_highest_rating;
+            if (uscf_but_no_nwsrs.find(star.getFullId()) != uscf_but_no_nwsrs.end()) {
+                std::cout << " Player has USCF supplement but no NWSRS games.";
+            }
+            std::cout << std::endl;
         }
         std::cout << std::endl << std::endl;
     }

@@ -53,6 +53,10 @@ public:
         return school_code + grade + id;
     }
 
+    bool isAdult(void) const {
+        return grade == 'N';
+    }
+
     Player(void) : grade('Z'), nwsrs_rating(0), num_games(0), games_ytd(0), highest_rating_this_year(0), lowest_rating(0), start_rating(0), kirks_code(0), rating_basis(' '), uscf_rating(0), calc_highest_rating(0) {}
 };
 

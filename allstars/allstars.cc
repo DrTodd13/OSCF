@@ -9,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <set>
+#include <sstream>
 
 int daysdiff(const std::string &in, const std::chrono::system_clock::time_point &now) {
     std::tm tm = {0,0,0,0,0,0,0,0,0,0,0};
@@ -202,7 +203,32 @@ int main(int argc, char *argv[]) {
         std::sort(or_by_grade[i].begin(), or_by_grade[i].end(), isop);
         std::cout << grade_names[i] << std::endl;
         int j;
-        for (j = 0; j < or_by_grade[i].size() && j < 10; ++j) {
+        int num_players_on_list = 10;
+
+        if (or_by_grade[i].size() < 10) {
+            num_players_on_list = or_by_grade[i].size();
+        }
+
+        // By default there are 10 players on the list except for when there is a tie for 10th place.
+        if (or_by_grade[i].size() > 10) {
+            // Get the 10th players.
+            Player &star10 = or_players[or_by_grade[i][9]];
+            // For 11th position and onwards.
+            for (j = 10; j < or_by_grade[i].size(); ++j) {
+                Player &this_star = or_players[or_by_grade[i][j]];
+                // If there is a tie with the 10th player then add an additional player to the list.
+                if (this_star.calc_highest_rating == star10.calc_highest_rating) {
+                    ++num_players_on_list;
+                } else {
+                    break;
+                }
+            }
+        }
+
+        bool in_tie = false;
+        unsigned start_tie = 0;
+
+        for (j = 0; j < num_players_on_list; ++j) {
             Player &star = or_players[or_by_grade[i][j]];
             std::string full_name = star.last_name + ", " + star.first_name;
             auto citer = codes.find(star.school_code);
@@ -212,7 +238,36 @@ int main(int argc, char *argv[]) {
             }
             std::string city = citer->second;
  
-            std::cout << std::setw(2) << j+1 << " " << std::left << std::setw(30) << full_name << " " << std::setw(20) << city << std::right << std::setw(4) << star.calc_highest_rating;
+            std::stringstream position_str;
+
+            // If there is another player on the list after us.
+            if (j != num_players_on_list - 1) {
+                Player &next_star = or_players[or_by_grade[i][j+1]];
+                if (star.calc_highest_rating == next_star.calc_highest_rating) {
+                    if(in_tie) {
+                        position_str << "T" << start_tie;
+                    } else {
+                        in_tie = true;
+                        start_tie = j+1;
+                        position_str << "T" << start_tie;
+                    }
+                } else {
+                    if(in_tie) {
+                        in_tie = false;
+                        position_str << "T" << start_tie;
+                    } else {
+                        position_str << j+1;
+                    }
+                }
+            } else {
+                if(in_tie) {
+                    position_str << "T" << start_tie;
+                } else {
+                    position_str << j+1;
+                }
+            }
+
+            std::cout << std::setw(4) << position_str.str() << " " << std::left << std::setw(30) << full_name << " " << std::setw(20) << city << std::right << std::setw(4) << star.calc_highest_rating;
             if (uscf_but_no_nwsrs.find(star.getFullId()) != uscf_but_no_nwsrs.end()) {
                 std::cout << " Player has USCF supplement but no NWSRS games.";
             }

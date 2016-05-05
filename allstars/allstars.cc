@@ -82,6 +82,7 @@ void process_uscf_supp(const std::string &file, std::vector<Player> &or_players,
         Player &this_player = or_players[player_index->second];
 
         if (this_player.isAdult()) continue;
+        if (this_player.isUSCFProvOrExpired()) continue;
 
         if (start_rating > this_player.calc_highest_rating) {
             // For now just remember if a player has USCF but no NWSRS games.

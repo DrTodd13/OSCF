@@ -57,6 +57,10 @@ public:
         return grade == 'N';
     }
 
+    bool isUSCFProvOrExpired(void) const {
+        return uscf_prov_codes == "E" || uscf_prov_codes == "P";
+    }
+
     Player(void) : grade('Z'), nwsrs_rating(0), num_games(0), games_ytd(0), highest_rating_this_year(0), lowest_rating(0), start_rating(0), kirks_code(0), rating_basis(' '), uscf_rating(0), calc_highest_rating(0) {}
 };
 

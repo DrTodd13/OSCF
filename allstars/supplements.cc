@@ -39,12 +39,16 @@ std::map<USCF_ID, USCF_RATING> process_supplements(const std::vector<std::string
     return ret;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
     std::vector<std::string> files;
-    files.push_back(std::string("RSQ1602/2.or"));
-    files.push_back(std::string("RSQ1603/3.or"));
-    files.push_back(std::string("RSQ1604/4.or"));
-    files.push_back(std::string("RSQ1605/5.or"));
+    int i;
+    for (i = 1; i < argc; ++i) {
+        files.push_back(std::string(argv[i]));
+    }
+//    files.push_back(std::string("RSQ1602/2.or"));
+//    files.push_back(std::string("RSQ1603/3.or"));
+//    files.push_back(std::string("RSQ1604/4.or"));
+//    files.push_back(std::string("RSQ1605/5.or"));
     auto supps = process_supplements(files);    
     for(auto iter = supps.begin(); iter != supps.end(); ++iter) {
         std::cout << iter->first << " " << iter->second << std::endl;

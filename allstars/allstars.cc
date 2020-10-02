@@ -7,7 +7,6 @@
 #include <iomanip>
 #include <sstream>
 #include <set>
-#include <sstream>
 #include "DatFile.cpp"
 #include <string.h>
 #include <assert.h>
@@ -71,7 +70,7 @@ void process_tourney_results(const std::string &file, std::vector<Player> &or_pl
 
         unsigned games_at_start = total_games - games_this_event;
 
-        logfile << "process " << fullid << " " << start_rating << " " << end_rating << " " << total_games << " " << games_this_event << " " << games_at_start << std::endl;
+        logfile << "process ID " << fullid << " " << " start_rating " << start_rating << " " << " end_rating " << end_rating << " " << " total_games " << total_games << " " << " games_this_event " << games_this_event << " " << games_at_start << std::endl;
 	assert(fullid.length() == 8);
 	std::string id = fullid.substr(4,4);
 
@@ -115,7 +114,7 @@ void process_uscf_supp(const std::string &file, std::vector<Player> &or_players,
         
         Player &this_player = or_players[player_index->second];
 
-	logfile << "Player " << this_player.last_name << " " << this_player.first_name << " " << this_player.calc_highest_rating << " " << this_player.isAdult() << " " << this_player.isUSCFProv() << " " << this_player.uscf_exp_date << std::endl;
+	logfile << "Player " << this_player.last_name << " " << this_player.first_name << " highest rating " << this_player.calc_highest_rating << " isAdult " << this_player.isAdult() << " isProvisional " << this_player.isUSCFProv() << " expire_date " << this_player.uscf_exp_date << std::endl;
 
         if (this_player.isAdult()) continue;
         if (this_player.isUSCFProv()) continue;
@@ -176,6 +175,21 @@ std::map<std::string, std::string> load_schoolcodes(void) {
     return ret;
 }
 
+std::map<std::string, std::string> load_homeschool(void) {
+    std::map<std::string, std::string> ret;
+    std::ifstream hfile("homeschool.txt");
+    while(!hfile.eof()) {
+        std::string name;
+        getline(hfile, name);
+        if (hfile.eof()) break;
+        std::string city;
+        getline(hfile, city);
+        if (hfile.eof()) break;
+        ret.insert(std::pair<std::string, std::string>(name, city));
+    }
+    return ret;
+}
+
 int main(int argc, char *argv[]) {
     if (argc != 6 && argc != 7) {
         std::cerr << "Wrong number of command line arguments." << std::endl;
@@ -194,6 +208,7 @@ int main(int argc, char *argv[]) {
     std::map<std::string, unsigned> nwsrs_map;
     std::map<std::string, unsigned> uscf_map;
     std::ofstream logfile("allstars.log");
+    std::map<std::string, std::string> homeschool = load_homeschool();
 
     unsigned player_index = 0;
 
@@ -230,7 +245,7 @@ int main(int argc, char *argv[]) {
 
         if (or_players[i].calc_highest_rating > 0) {
             or_by_grade[grade_index].push_back(i);
-            logfile << "Adding " << or_players[i].last_name << " " << or_players[i].first_name << " " << or_players[i].id << " " << or_players[i].uscf_id << " " << i << " to grade index " << grade_index << std::endl;
+            logfile << "Adding Oregon player " << or_players[i].last_name << " " << or_players[i].first_name << " ID " << or_players[i].id << " USCF_ID " << or_players[i].uscf_id << " index " << i << " to grade index " << grade_index << std::endl;
         }
     }
 
@@ -254,9 +269,11 @@ int main(int argc, char *argv[]) {
     //for(i = 0; i < or_players.size(); ++i) {
     //    std::cout << or_players[i] << std::endl;
     //}
+    std::ofstream csvfile("allstars.csv");
     for(i = 12; i >= 0; --i) {
         std::sort(or_by_grade[i].begin(), or_by_grade[i].end(), isop);
         std::cout << grade_names[i] << std::endl;
+        csvfile << grade_names[i] << ",,," << std::endl;
         int j;
         int num_players_on_list = 10;
 
@@ -292,6 +309,12 @@ int main(int argc, char *argv[]) {
                exit(-1);
             }
             std::string city = citer->second;
+            if(city == "") {
+                auto hiter = homeschool.find(full_name);
+                if(hiter != homeschool.end()) {
+                    city = hiter->second;
+                }
+            }
  
             std::stringstream position_str;
 
@@ -323,12 +346,16 @@ int main(int argc, char *argv[]) {
             }
 
             std::cout << std::setw(4) << position_str.str() << " " << std::left << std::setw(30) << full_name << " " << std::setw(20) << city << std::right << std::setw(4) << star.calc_highest_rating;
+            csvfile << position_str.str() << "," << "\"" << full_name << "\"," << city << "," << star.calc_highest_rating << std::endl;
             if (uscf_but_no_nwsrs.find(star.id) != uscf_but_no_nwsrs.end()) {
 //                std::cout << " Player has USCF supplement but no NWSRS games.";
             }
             std::cout << std::endl;
         }
         std::cout << std::endl << std::endl;
+        if(i != 0) {
+            csvfile << ",,," << std::endl << ",,," << std::endl;
+        }
     }
     return 0;
 }

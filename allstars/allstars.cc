@@ -124,16 +124,16 @@ void process_uscf_supp(const std::string &file, std::vector<Player> &or_players,
 	if (temp_date < start_date) continue;
 
         if (rating > this_player.calc_highest_rating) {
-	    logfile << "USCF supp rating higher than calc_highest_rating." << std::endl;
+	        logfile << "USCF supp rating higher than calc_highest_rating." << std::endl;
             // For now just remember if a player has USCF but no NWSRS games.
             if (this_player.calc_highest_rating == 0) {
                 uscf_but_not_nwsrs.insert(this_player.id);                
             }
             this_player.calc_highest_rating = rating;
-	    if (this_player.nwsrs_rating > this_player.calc_highest_rating) {
-	        logfile << "nwsrs rating higher than calc." << std::endl;
+	        if (this_player.nwsrs_rating > this_player.calc_highest_rating) {
+	            logfile << "nwsrs rating higher than calc." << std::endl;
                 this_player.calc_highest_rating = this_player.nwsrs_rating;
-	    }
+	        }
         } else {
 	    logfile << "USCF supp rating higher than calc_highest_rating." << std::endl;
 	}

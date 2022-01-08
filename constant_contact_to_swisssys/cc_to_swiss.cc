@@ -10,7 +10,7 @@
 #include <sstream>
 #include "../include/tokenize_csv.h"
 
-#if 0
+/*
 1 First Name
 2 Last Name
 3 Email Address
@@ -49,7 +49,7 @@
 36 Scholastic Player (late registration) Quantity
 37 Scholastic Player (late registration) Price
 38 ...
-#endif
+*/
 
 class ConstantContactEntry {
 protected:
@@ -143,11 +143,11 @@ int main(int argc, char *argv[]) {
 
     int i;
     for (i = 0; i < entries.size(); ++i) {
-//        std::cout << entries[i].getFirstName() << " " << entries[i].getLastName() << " " << entries[i].didAdultCheck() << " school=" << entries[i].getSchool() << " grade=" << entries[i].getGrade() << " section=" << entries[i].getSection() << " nwsrsid=" << entries[i].getNwsrsId() << std::endl;
         if (entries[i].isParent()) {
             ++num_parents;
         }
         if (entries[i].isPlayer()) {
+            std::cout << entries[i].getFirstName() << " " << entries[i].getLastName() << " " << entries[i].didAdultCheck() << " school=" << entries[i].getSchool() << " grade=" << entries[i].getGrade() << " section=" << entries[i].getSection() << " nwsrsid=" << entries[i].getNwsrsId() << std::endl;
             ++num_players;
         }
     }

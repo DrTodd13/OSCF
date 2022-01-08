@@ -7,7 +7,7 @@ import sys
 
 filename = sys.argv[1]
 if filename.endswith('.dbf') or filename.endswith('.DBF'):
-    print "Converting %s to csv" % filename
+    print("Converting %s to csv" % filename)
     csv_fn = filename[:-4]+ ".csv"
     with open(csv_fn,'wb') as csvfile:
         in_db = dbf.Dbf(filename)
@@ -19,6 +19,6 @@ if filename.endswith('.dbf') or filename.endswith('.DBF'):
         for rec in in_db:
             out_csv.writerow(rec.fieldData)
         in_db.close()
-        print "Done..."
+        print("Done...")
 else:
-  print "Filename does not end with .dbf"
+    print("Filename does not end with .dbf")
